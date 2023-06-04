@@ -6,57 +6,41 @@ import System.Random (getStdRandom, uniformR)
 
 -- ref: https://en.wikipedia.org/wiki/Perceptron#Learning_algorithm
 
-type Weight = Float
+genFloat :: MonadIO m => m Float
+genFloat = getStdRandom $ uniformR (0 :: Float, 1 :: Float)
 
-genWeight :: MonadIO m => m Weight
-genWeight = getStdRandom $ uniformR (0 :: Float, 1 :: Float)
+genFloats :: MonadIO m => Int -> m [Float]
+genFloats size = replicateM size genFloat
 
-genWeights :: MonadIO m => Int -> m [Weight]
-genWeights size = replicateM size genWeight
-
-type Input = Float
-
-type Expected = Float
-
-type Training = ([Input], Expected)
-
-type DataSet = [Training]
-
-type LearningRate = Float
-
-type Actual = Float
-
-type Calculated = ([Input], [Weight], Expected, Actual)
-
-calculate :: [Weight] -> Training -> Calculated
+calculate :: [Float] -> ([Float], Float) -> ([Float], [Float], Float, Float)
 calculate ws (is, e) = (is, ws, e, foldr (\(w, i) acc -> acc + i * w) 0 (zip ws is))
 
-adjustWeight :: LearningRate -> Calculated -> [Weight]
-adjustWeight r (is, ws, e, a) = zipWith adjust ws is
+adjustFloat :: Float -> ([Float], [Float], Float, Float) -> [Float]
+adjustFloat r (is, ws, e, a) = zipWith adjust ws is
   where
     adjust w i = w + r * (e - a) * i
 
 data Neuron = Neuron
-  { neuronWeights :: [Weight],
-    neuronLearningRate :: LearningRate
+  { neuronFloats :: [Float],
+    neuronLearningRate :: Float
   }
   deriving (Show)
 
-learn :: Neuron -> DataSet -> Neuron
+learn :: Neuron -> [([Float], Float)] -> Neuron
 learn (Neuron ws r) = go ws
   where
-    go :: [Weight] -> DataSet -> Neuron
+    go :: [Float] -> [([Float], Float)] -> Neuron
     go ws' [] = Neuron ws' r
     go ws' (t : rest) =
       let calculated = calculate ws' t
-       in go (adjustWeight r calculated) rest
+       in go (adjustFloat r calculated) rest
 
-learnRepeatedly :: Int -> Neuron -> DataSet -> Neuron
+learnRepeatedly :: Int -> Neuron -> [([Float], Float)] -> Neuron
 learnRepeatedly 0 n _ = n
 learnRepeatedly c n d = learnRepeatedly (c - 1) (learn n d) d
 
-think :: Neuron -> [Input] -> Float
-think (Neuron ws _) = foldr (\(w, i) acc -> acc + w * i) 0 . zip ws
+think :: Neuron -> [Float] -> Float
+think (Neuron ws _) = sum . zipWith (*) ws
 
 twice :: Int -> IO ()
 twice n = do
@@ -67,7 +51,7 @@ twice n = do
           ([3], 6),
           ([4], 8)
         ]
-  ws <- genWeights 1
+  ws <- genFloats 1
   let learned = learnRepeatedly n (Neuron ws 1) sample
   forM_ [5 .. 10] (\x -> print $ "Input " <> show x <> " then: " <> show (think learned [x]))
 
