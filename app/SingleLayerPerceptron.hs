@@ -42,8 +42,17 @@ learnRepeatedly c n d = learnRepeatedly (c - 1) (learn n d) d
 think :: Neuron -> [Float] -> Float
 think (Neuron ws _) = sum . zipWith (*) ws
 
-twice :: Int -> IO ()
-twice n = do
+run :: Int -> [[Float]] -> Float -> [([Float], Float)] -> IO ()
+run _ _ _ [] = fail "dataset must be provided"
+run n xs r dataset = do
+  let weightSize = length . fst . head $ dataset
+  ws <- genFloats weightSize
+  let learned = learnRepeatedly n (Neuron ws r) dataset
+  print learned
+  forM_ xs (\x -> print $ "Input " <> show x <> " then: " <> show (think learned x))
+
+twice :: Int -> Float -> IO ()
+twice n r =
   let sample =
         [ ([0], 0),
           ([1], 2),
@@ -51,11 +60,9 @@ twice n = do
           ([3], 6),
           ([4], 8)
         ]
-  ws <- genFloats 1
-  let learned = learnRepeatedly n (Neuron ws 1) sample
-  forM_ [5 .. 10] (\x -> print $ "Input " <> show x <> " then: " <> show (think learned [x]))
+   in run n [[x] | x <- [5 .. 10]] r sample
 
 main :: IO ()
 main = do
   print "twice"
-  twice 100
+  twice 50 1
