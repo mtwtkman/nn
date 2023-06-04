@@ -6,11 +6,11 @@ import System.Random (getStdRandom, uniformR)
 
 -- ref: https://en.wikipedia.org/wiki/Perceptron#Learning_algorithm
 
-genFloat :: MonadIO m => m Float
-genFloat = getStdRandom $ uniformR (0 :: Float, 1 :: Float)
+genWeight :: MonadIO m => m Float
+genWeight = getStdRandom $ uniformR (0 :: Float, 1 :: Float)
 
-genFloats :: MonadIO m => Int -> m [Float]
-genFloats size = replicateM size genFloat
+genWeights :: MonadIO m => Int -> m [Float]
+genWeights size = replicateM size genWeight
 
 calculate :: [Float] -> ([Float], Float) -> ([Float], [Float], Float, Float)
 calculate ws (is, e) = (is, ws, e, foldr (\(w, i) acc -> acc + i * w) 0 (zip ws is))
@@ -46,7 +46,7 @@ run :: Int -> [[Float]] -> Float -> [([Float], Float)] -> IO ()
 run _ _ _ [] = fail "dataset must be provided"
 run n xs r dataset = do
   let weightSize = length . fst . head $ dataset
-  ws <- genFloats weightSize
+  ws <- genWeights weightSize
   let learned = learnRepeatedly n (Neuron ws r) dataset
   print learned
   forM_ xs (\x -> print $ "Input " <> show x <> " then: " <> show (think learned x))
