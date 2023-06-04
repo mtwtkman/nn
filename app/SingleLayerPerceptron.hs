@@ -5,8 +5,6 @@ import Control.Monad.IO.Class (MonadIO)
 import System.Random (getStdRandom, uniformR)
 
 -- ref: https://en.wikipedia.org/wiki/Perceptron#Learning_algorithm
---
--- This implements single-layer perceptron which has input layer and Actual layer but no hidden layer.
 
 type Weight = Float
 
