@@ -8,9 +8,9 @@ build-type:    Simple
 common warnings
   ghc-options: -Wall
 
-executable single-layer-perceptron
+executable twice
   import:           warnings
-  main-is:          SingleLayerPerceptron.hs
+  main-is:          Twice.hs
   build-depends:
     , base
     , random
