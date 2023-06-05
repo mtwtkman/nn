@@ -15,13 +15,13 @@ genWeights size = replicateM size genWeight
 calculate :: [Float] -> ([Float], Float) -> ([Float], [Float], Float, Float)
 calculate ws (is, e) = (is, ws, e, foldr (\(w, i) acc -> acc + i * w) 0 (zip ws is))
 
-adjustFloat :: Float -> ([Float], [Float], Float, Float) -> [Float]
-adjustFloat r (is, ws, e, a) = zipWith adjust ws is
+adjustWeight :: Float -> ([Float], [Float], Float, Float) -> [Float]
+adjustWeight r (is, ws, e, a) = zipWith adjust ws is
   where
     adjust w i = w + r * (e - a) * i
 
 data Neuron = Neuron
-  { neuronFloats :: [Float],
+  { neuronWeight :: [Float],
     neuronLearningRate :: Float
   }
   deriving (Show)
@@ -33,7 +33,7 @@ learn (Neuron ws r) = go ws
     go ws' [] = Neuron ws' r
     go ws' (t : rest) =
       let calculated = calculate ws' t
-       in go (adjustFloat r calculated) rest
+       in go (adjustWeight r calculated) rest
 
 learnRepeatedly :: Int -> Neuron -> [([Float], Float)] -> Neuron
 learnRepeatedly 0 n _ = n
